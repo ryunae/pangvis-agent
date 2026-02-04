@@ -6,12 +6,8 @@ builder = "dockerfile"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-# 헬스체크 설정
-healthcheckPath = "/healthz"
-healthcheckTimeout = 300
+# healthcheck 제거 - n8n 시작 시간이 오래 걸림
 startCommand = "n8n start"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
-
-# 리소스 설정 (Hobby 요금제 최적화)
 numReplicas = 1
