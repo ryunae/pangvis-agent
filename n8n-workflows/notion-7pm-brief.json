@@ -1,0 +1,284 @@
+{
+  "name": "notion-7pm-brief",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 19
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -320,
+        80
+      ],
+      "id": "12633bdd-858a-4838-bef3-b394ee5b1747",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/databases/2e10eb8553d1812fa3e7e2e1b8b00f16/query",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "notionApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"filter\": {\n    \"and\": [\n      {\n        \"property\": \"완료\",\n        \"checkbox\": {\n          \"equals\": true\n        }\n      },\n      {\n        \"property\": \"최종 편집 일시\",\n        \"date\": {\n          \"on_or_after\": \"{{ $today.format('yyyy-MM-dd') }}\"\n        }\n      }\n    ]\n  },\n  \"sorts\": [\n    {\n      \"property\": \"최종 편집 일시\",\n      \"direction\": \"descending\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        0,
+        -128
+      ],
+      "id": "3adcec06-010c-424a-be6c-f502ef4a65d5",
+      "name": "완료",
+      "credentials": {
+        "notionApi": {
+          "id": "GPk81QQC6AyJ5YNi",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/databases/2e10eb8553d1812fa3e7e2e1b8b00f16/query",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "notionApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"filter\": {\n    \"and\": [\n      {\n        \"property\": \"완료\",\n        \"checkbox\": {\n          \"equals\": false\n        }\n      },\n      {\n        \"property\": \"날짜\",\n        \"date\": {\n          \"equals\": \"{{ $today.format('yyyy-MM-dd') }}\"\n        }\n      }\n    ]\n  },\n  \"sorts\": [\n    {\n      \"property\": \"이름\",\n      \"direction\": \"ascending\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        0,
+        32
+      ],
+      "id": "71d78396-a5f1-4e55-a5af-248d21206c65",
+      "name": "미완료",
+      "credentials": {
+        "notionApi": {
+          "id": "GPk81QQC6AyJ5YNi",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/databases/2e10eb8553d1812fa3e7e2e1b8b00f16/query",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "notionApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"filter\": {\n    \"and\": [\n      {\n        \"property\": \"완료\",\n        \"checkbox\": {\n          \"equals\": false\n        }\n      },\n      {\n        \"property\": \"최종 편집 일시\",\n        \"date\": {\n          \"on_or_after\": \"{{ $today.format('yyyy-MM-dd') }}\"\n        }\n      },\n      {\n        \"property\": \"날짜\",\n        \"date\": {\n          \"is_not_empty\": true\n        }\n      }\n    ]\n  },\n  \"sorts\": [\n    {\n      \"property\": \"최종 편집 일시\",\n      \"direction\": \"descending\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        0,
+        192
+      ],
+      "id": "eabfc725-eba7-4d2a-87ca-f8c5264fd544",
+      "name": "이동",
+      "credentials": {
+        "notionApi": {
+          "id": "GPk81QQC6AyJ5YNi",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/databases/2e10eb8553d1812fa3e7e2e1b8b00f16/query",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "notionApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"filter\": {\n    \"and\": [\n      {\n        \"property\": \"완료\",\n        \"checkbox\": {\n          \"equals\": false\n        }\n      },\n      {\n        \"property\": \"날짜\",\n        \"date\": {\n          \"equals\": \"{{ $today.plus({days: 1}).format('yyyy-MM-dd') }}\"\n        }\n      }\n    ]\n  },\n  \"sorts\": [\n    {\n      \"property\": \"날짜\",\n      \"direction\": \"ascending\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        0,
+        352
+      ],
+      "id": "d594f4b4-23dd-405f-8d8f-5eaae3e0ceb0",
+      "name": "내일",
+      "credentials": {
+        "notionApi": {
+          "id": "GPk81QQC6AyJ5YNi",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 4
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        288,
+        48
+      ],
+      "id": "7fbf5097-5953-445b-87ea-b95ee21c5cbd",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// [순서 매핑 확인]\n// Input 1 (Index 0): ✅ 완료된 일\n// Input 2 (Index 1): 🔥 미완료된 일 (오늘 할 일인데 안 한 거)\n// Input 3 (Index 2): ⚠️ 변경된 일\n// Input 4 (Index 3): 🚀 내일 할 일\n\nconst items = $input.all();\n\n// 각 인덱스별로 결과가 없어도 빈 배열([])을 할당하여 에러 방지\nconst completedTasks = items[0]?.json?.results || [];\nconst uncompletedTasks = items[1]?.json?.results || [];\nconst changedTasks = items[2]?.json?.results || [];\nconst tomorrowTasks = items[3]?.json?.results || [];\n\nconst today = new Date().toISOString().split('T')[0];\n\n// ----------------------------------------\n// 🎨 디스코드 리포트 작성 (순서 교체 버전)\n// ----------------------------------------\n\nlet report = `# 📅 데일리 리포트 (${today})\\n`;\nreport += `─────────────────────\\n\\n`;\n\n// 1. ✅ 오늘 완료된 할 일\nreport += `### ✅ 오늘 완료된 할 일 (${completedTasks.length}개)\\n`;\nif (completedTasks.length > 0) {\n  completedTasks.forEach(task => {\n    const title = task.properties['이름']?.title[0]?.plain_text || '제목 없음';\n    const url = task.url;\n    report += `> • [${title}](${url})\\n`;\n  });\n} else {\n  report += \"> 💤 완료된 할 일이 없습니다.\\n\";\n}\nreport += '\\n';\n\n// 2. 🔥 오늘 못다 한 일 (미완료)\nreport += `### 🔥 오늘 못다 한 일 (${uncompletedTasks.length}개)\\n`;\nif (uncompletedTasks.length > 0) {\n  uncompletedTasks.forEach(task => {\n    const title = task.properties['이름']?.title[0]?.plain_text || '제목 없음';\n    const url = task.url;\n    report += `> • [${title}](${url})\\n`;\n  });\n} else {\n  report += \"> 💯 완벽해요! 오늘의 할 일을 모두 마쳤습니다.\\n\";\n}\nreport += '\\n';\n\n// 3. ⚠️ 날짜가 변경된 일 (순서 이동)\nreport += `### ⚠️ 날짜가 변경된 일 (${changedTasks.length}개)\\n`;\nif (changedTasks.length > 0) {\n  changedTasks.forEach(task => {\n    const title = task.properties['이름']?.title[0]?.plain_text || '제목 없음';\n    const url = task.url;\n    const date = task.properties['날짜']?.date?.start || '미정';\n    report += `> • [${title}](${url}) (🗓️ -> ${date})\\n`;\n  });\n} else {\n  report += \"> ✨ 일정 변경 없음\\n\";\n}\nreport += '\\n';\n\n// 4. 🚀 내일 할 일 (순서 이동)\nreport += `### 🚀 내일 할 일 (${tomorrowTasks.length}개)\\n`;\nif (tomorrowTasks.length > 0) {\n  tomorrowTasks.forEach(task => {\n    const title = task.properties['이름']?.title[0]?.plain_text || '제목 없음';\n    const url = task.url;\n    const tags = task.properties['다음 행동 상황']?.multi_select?.map(t => t.name).join(', ') || '';\n    \n    report += `> • [${title}](${url})`;\n    if (tags) report += ` \\`[${tags}]\\``;\n    report += '\\n';\n  });\n} else {\n  report += \"> 🏖️ 내일 예정된 할 일이 없습니다.\\n\";\n}\n\nreport += `\\n─────────────────────`;\n\nreturn { json: { report: report } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        80
+      ],
+      "id": "d4a2b846-f731-4cc1-b0e4-3bcbf529fda4",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "={{ $json.report }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        688,
+        80
+      ],
+      "id": "64279410-dba7-45d9-b301-4b421f476f1c",
+      "name": "Discord",
+      "webhookId": "ba68e951-52dd-4d61-8ec8-086418e5cc4a",
+      "credentials": {
+        "discordWebhookApi": {
+          "id": "JlrAjjxV4NzdEafQ",
+          "name": "Discord Webhook account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "완료",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "미완료",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "이동",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "내일",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "내일": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "완료": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "미완료": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "이동": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "db6cdbe9-4a38-492a-986d-0a087bf91c67",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b395e642078f5ed10edbf1c29001e3a2243f8ee6445e6cb97bb7046023115b31"
+  },
+  "id": "nTn1-KhdV4PT87xWaXBZY",
+  "tags": []
+}
