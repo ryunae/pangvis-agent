@@ -1,0 +1,23 @@
+# Environment files with sensitive data
+.env
+*.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Logs
+*.log
+logs/
+
+# Node
+node_modules/
+
+# Backups (local only)
+backups/
+*.backup

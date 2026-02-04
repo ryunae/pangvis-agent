@@ -1,0 +1,173 @@
+{
+  "name": "Monthly n8n Update Check",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "months",
+              "monthsInterval": 1,
+              "triggerAtDayOfMonth": 1,
+              "triggerAtHour": 9,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "monthly-schedule",
+      "name": "Monthly Schedule (1st, 9AM)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.github.com/repos/n8n-io/n8n/releases/latest",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "get-latest-version",
+      "name": "Get Latest n8n Version",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const latestRelease = $input.first().json;\nconst latestVersion = latestRelease.tag_name?.replace('n8n@', '') || 'unknown';\nconst releaseDate = latestRelease.published_at;\nconst releaseNotes = latestRelease.body?.substring(0, 500) || 'No release notes';\n\n// 현재 버전은 환경변수에서 가져오거나 n8n API로 확인\nconst currentVersion = $env.N8N_VERSION || 'unknown';\n\nconst needsUpdate = latestVersion !== currentVersion && currentVersion !== 'unknown';\n\nreturn [{\n  json: {\n    currentVersion,\n    latestVersion,\n    needsUpdate,\n    releaseDate,\n    releaseUrl: latestRelease.html_url,\n    releaseHighlights: releaseNotes,\n    checkDate: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "compare-versions",
+      "name": "Compare Versions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "needs-update",
+              "leftValue": "={{ $json.needsUpdate }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-update-needed",
+      "name": "Update Available?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nconst notificationMessage = `\n🔄 **n8n 업데이트 알림**\n\n현재 버전: ${data.currentVersion}\n최신 버전: ${data.latestVersion}\n릴리스 일자: ${new Date(data.releaseDate).toLocaleDateString('ko-KR')}\n\n📋 **업데이트 방법:**\n1. Railway 대시보드 접속\n2. n8n 서비스 선택\n3. Settings → Redeploy 클릭\n4. 또는 GitHub Actions로 자동 배포\n\n🔗 릴리스 노트: ${data.releaseUrl}\n\n⚠️ 업데이트 전 백업을 확인하세요!\n`;\n\nreturn [{\n  json: {\n    subject: `[n8n] 새 버전 ${data.latestVersion} 업데이트 가능`,\n    message: notificationMessage,\n    ...data\n  }\n}];"
+      },
+      "id": "prepare-notification",
+      "name": "Prepare Update Notification",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 200]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Update Log",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Check Date": "={{ $json.checkDate }}",
+            "Current Version": "={{ $json.currentVersion }}",
+            "Latest Version": "={{ $json.latestVersion }}",
+            "Update Available": "={{ $json.needsUpdate }}",
+            "Status": "Notification Sent"
+          }
+        },
+        "options": {}
+      },
+      "id": "log-to-sheets",
+      "name": "Log to Google Sheets (Optional)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [1300, 200],
+      "disabled": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-sheets-oauth",
+          "name": "Google Sheets OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nreturn [{\n  json: {\n    status: 'UP_TO_DATE',\n    message: `n8n is up to date (${data.currentVersion})`,\n    checkDate: data.checkDate\n  }\n}];"
+      },
+      "id": "log-current",
+      "name": "Log - Already Current",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 400]
+    }
+  ],
+  "connections": {
+    "Monthly Schedule (1st, 9AM)": {
+      "main": [
+        [{ "node": "Get Latest n8n Version", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get Latest n8n Version": {
+      "main": [
+        [{ "node": "Compare Versions", "type": "main", "index": 0 }]
+      ]
+    },
+    "Compare Versions": {
+      "main": [
+        [{ "node": "Update Available?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Update Available?": {
+      "main": [
+        [{ "node": "Prepare Update Notification", "type": "main", "index": 0 }],
+        [{ "node": "Log - Already Current", "type": "main", "index": 0 }]
+      ]
+    },
+    "Prepare Update Notification": {
+      "main": [
+        [{ "node": "Log to Google Sheets (Optional)", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["maintenance", "automation", "update"]
+}
